@@ -1,7 +1,7 @@
 from markdown_blocks import markdown_to_html_node
 # from htmlnode import HTMLNode
 import os
-import pathlib
+from pathlib import Path
 
 
 def extract_title(markdown: str) -> str:
@@ -11,7 +11,7 @@ def extract_title(markdown: str) -> str:
             return line[2:]
     raise ValueError("Header h1 not found")
 
-def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
+def generate_page(from_path: str, template_path: str, dest_path: str, base_path: str) -> None:
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
 # open files
@@ -31,6 +31,9 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
 # replace template text with source file text
     template_raw_text = template_raw_text.replace("{{ Title }}", title)
     template_raw_text = template_raw_text.replace("{{ Content }}", content)
+    template_raw_text = template_raw_text.replace('"href="/', 'href="{basepath}')
+    template_raw_text = template_raw_text.replace('"src="/', 'src="{basepath}')
+
 
 # write
     directories = os.path.dirname(dest_path)
@@ -39,17 +42,17 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     dest_file = open(dest_path, "w")
     dest_file.write(template_raw_text)
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str, base_path: str) -> None:
     names = os.listdir(dir_path_content)
 
     for name in names:
         name_path = os.path.join(dir_path_content, name)
         new_dest_path = os.path.join(dest_dir_path, name)
-        absolute_path = pathlib.Path(name_path)
-        if not os.path.isfile(absolute_path):
-            generate_pages_recursive(name_path, template_path, new_dest_path)
+        if not os.path.isfile(name_path):
+            generate_pages_recursive(name_path, template_path, new_dest_path, base_path)
         else:
-            generate_page(name_path, template_path, new_dest_path.replace(".md", ".html"))
+            new_dest_path = str(Path(new_dest_path).with_suffix(".html"))
+            generate_page(name_path, template_path, new_dest_path, base_path)
 
     
 
