@@ -33,7 +33,7 @@ class LeafNode(HTMLNode):
         super().__init__(tag, value, None, props)
 
     def to_html(self) -> str:
-        if not self.value:
+        if self.value is None:
             raise ValueError("Invalid LeadNode: value cannot be None")
         if self.tag is None:
             return self.value
